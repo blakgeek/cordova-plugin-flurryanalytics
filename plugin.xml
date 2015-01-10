@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"
+    id="com.blakgeek.cordova.plugin.flurryanalytics" version="1.0.0">
+    <name>Flurry Analytics</name>
+    <description>Adds support for Flurry Analytics to your Cordova/PhoneGap apps.</description>
+    <license>Apache 2.0</license>
+    <keywords>flurry,analytics,cordova</keywords>
+    <author>Carlos "blakgeek" Lawton</author>
+
+    <js-module src="www/plugin.js" name="FlurryAnalyticsPlugin">
+        <clobbers target="FlurryAnalytics" />
+        <clobbers target="plugins.FlurryAnalytics"/>
+    </js-module>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="FlurryAnalyticsPlugin">
+                <param name="ios-package" value="FlurryAnalyticsPlugin" />
+            </feature>
+        </config-file>
+        <header-file src="src/ios/Flurry.h" />
+        <header-file src="src/ios/FlurryAnalyticsPlugin.h" />
+        <source-file src="src/ios/FlurryAnalyticsPlugin.m" />
+        <source-file src="src/ios/libFlurry_6.0.0.a" framework="true" />
+        <framework src="SystemConfiguration.framework" />
+        <framework src="CFNetwork.framework" />
+        <framework src="Security.framework" />
+    </platform>
+
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="FlurryAnalyticsPlugin">
+                <param name="android-package" value="com.blakgeek.cordova.plugin.flurry.FlurryAnalyticsPlugin" />
+            </feature>
+        </config-file>
+
+        <dependency id="com.google.playservices" />
+        <dependency id="android.support.v4" />
+
+        <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java" target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
+        <source-file src="src/android/FlurryAnalytics-5.0.0.jar" target-dir="libs" />
+
+        <config-file target="AndroidManifest.xml" parent="/*/application">
+            <meta-data android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version" />
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.INTERNET" />
+        </config-file>
+    </platform>
+</plugin>
