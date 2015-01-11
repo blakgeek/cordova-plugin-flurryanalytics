@@ -22,7 +22,7 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
-            if ("init".equals(action)) {
+            if ("initialize".equals(action)) {
                 init(args, callbackContext);
             } else if ("logEvent".equals(action)) {
                 logEvent(args, callbackContext);
@@ -32,6 +32,8 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
                 logPageView(args, callbackContext);
             } else if ("logError".equals(action)) {
                 logError(args, callbackContext);
+            } else if ("setLocation".equals(action)) {
+                setLocation(args, callbackContext);
             } else {
                 Log.d(LOGTAG, "Invalid Action: " + action);
                 callbackContext.error("Invalid Action: " + action);
@@ -45,83 +47,107 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
         }
     }
 
+    private void setLocation(JSONArray args, CallbackContext callbackContext) throws JSONException {
+
+        float latitude = (float) args.getDouble(0);
+        float longitude = (float) args.getDouble(1);
+
+        try {
+            FlurryAgent.setLocation(latitude, longitude);
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
     private void logError(JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-        FlurryAgent.onError(args.getString(0), args.getString(1), (Exception) null);
+        try {
+            FlurryAgent.onError(args.getString(0), args.getString(1), (Exception) null);
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
     private void logPageView(JSONArray args, CallbackContext callbackContext) {
 
-        FlurryAgent.onPageView();
+        try {
+            FlurryAgent.onPageView();
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
     }
 
-    private void endTimedEvent(JSONArray args, CallbackContext callbackContext) {
+    private void endTimedEvent(JSONArray args, CallbackContext callbackContext) throws JSONException {
 
+        String event = args.getString(0);
+        if(args.isNull(1)) {
+            FlurryAgent.endTimedEvent(event);
+        } else {
+            FlurryAgent.endTimedEvent(event, this.jsonObjectToMap(args.getJSONObject(1)));
+        }
     }
 
     private void init(JSONArray args, CallbackContext callbackContext) throws JSONException {
 
-        // app key is the only that is required.
-        String appKey = args.getString(0);
+        try {
 
-        // deal with all the optional configuration data
-        if (!args.isNull(1)) {
+            // deal with all the optional configuration data
+            if (!args.isNull(1)) {
 
-            JSONObject options = args.getJSONObject(1);
-            if (!options.isNull("versionName")) {
-                FlurryAgent.setVersionName(options.getString("versionName"));
-            }
-            if (!options.isNull("continueSessionMillis")) {
-                // TODO: validate the value is between 10 and 5000 and return error
-                FlurryAgent.setContinueSessionMillis(options.getInt("continueSessionMillis"));
-            }
-            if (!options.isNull("userId")) {
-                FlurryAgent.setUserId(options.getString("userId"));
-            }
-            if (!options.isNull("gender")) {
-                char gender = options.getString("gender").toLowerCase().charAt(0);
-                if (gender == 'm') {
-                    FlurryAgent.setGender(Constants.MALE);
-                } else if (gender == 'f') {
-                    FlurryAgent.setGender(Constants.FEMALE);
-                } else {
-                    // TODO: log and warning, leave gender as default
+                JSONObject options = args.getJSONObject(1);
+                if (!options.isNull("version")) {
+                    FlurryAgent.setVersionName(options.getString("version"));
+                }
+                if (!options.isNull("continueSessionSeconds")) {
+                    // TODO: validate the value is less than 5 and return error
+                    FlurryAgent.setContinueSessionMillis(options.getInt("continueSessionSeconds") * 1000);
+                }
+                if (!options.isNull("userId")) {
+                    FlurryAgent.setUserId(options.getString("userId"));
+                }
+                if (!options.isNull("gender")) {
+                    char gender = options.getString("gender").toLowerCase().charAt(0);
+                    if (gender == 'm') {
+                        FlurryAgent.setGender(Constants.MALE);
+                    } else if (gender == 'f') {
+                        FlurryAgent.setGender(Constants.FEMALE);
+                    } else {
+                        // TODO: log and warning, leave gender as default
+                    }
+                }
+                if (!options.isNull("age")) {
+                    FlurryAgent.setAge(options.getInt("age"));
+                }
+                if (!options.isNull("logLevel")) {
+                    String level = options.getString("logLevel");
+
+                    if ("VERBOSE".equalsIgnoreCase(level)) {
+                        FlurryAgent.setLogLevel(Log.VERBOSE);
+                        FlurryAgent.setLogEnabled(true);
+                    } else if ("DEBUG".equalsIgnoreCase(level)) {
+                        FlurryAgent.setLogLevel(Log.DEBUG);
+                        FlurryAgent.setLogEnabled(true);
+                    } else if ("INFO".equalsIgnoreCase(level)) {
+                        FlurryAgent.setLogLevel(Log.INFO);
+                        FlurryAgent.setLogEnabled(true);
+                    } else if ("WARN".equalsIgnoreCase(level)) {
+                        FlurryAgent.setLogLevel(Log.WARN);
+                        FlurryAgent.setLogEnabled(true);
+                    } else if ("ERROR".equalsIgnoreCase(level)) {
+                        FlurryAgent.setLogLevel(Log.ERROR);
+                        FlurryAgent.setLogEnabled(true);
+                    } else {
+                        // TODO: log and return warning, leave log level at default
+                    }
+                }
+                if (!options.isNull("enableEventLogging")) {
+
+                    FlurryAgent.setLogEvents(options.getBoolean("enableEventLogging"));
                 }
             }
-            if (!options.isNull("age")) {
-                FlurryAgent.setAge(options.getInt("age"));
-            }
-            if (!options.isNull("location")) {
-                JSONArray location = options.getJSONArray("location");
-                FlurryAgent.setLocation((float) location.getDouble(0), (float) location.getDouble(1));
-            }
-            if (!options.isNull("logLevel")) {
-                String level = options.getString("logLevel");
-
-                if ("VERBOSE".equalsIgnoreCase(level)) {
-                    FlurryAgent.setLogLevel(Log.VERBOSE);
-                    FlurryAgent.setLogEnabled(true);
-                } else if ("DEBUG".equalsIgnoreCase(level)) {
-                    FlurryAgent.setLogLevel(Log.DEBUG);
-                    FlurryAgent.setLogEnabled(true);
-                } else if ("INFO".equalsIgnoreCase(level)) {
-                    FlurryAgent.setLogLevel(Log.INFO);
-                    FlurryAgent.setLogEnabled(true);
-                } else if ("WARN".equalsIgnoreCase(level)) {
-                    FlurryAgent.setLogLevel(Log.WARN);
-                    FlurryAgent.setLogEnabled(true);
-                } else if ("ERROR".equalsIgnoreCase(level)) {
-                    FlurryAgent.setLogLevel(Log.ERROR);
-                    FlurryAgent.setLogEnabled(true);
-                } else {
-                    // TODO: log and return warning, leave log level at default
-                }
-            }
-            if(!options.isNull("enableEventLogging")) {
-
-                FlurryAgent.setLogEvents(options.getBoolean("enableEventLogging"));
-            }
-        }
         /*
         iOS only noops for Android
 
@@ -133,7 +159,14 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
         enableCrashReporting
         */
 
-        FlurryAgent.init(cordova.getActivity(), appKey);
+            // app key is the only that is required.
+            String appKey = args.getString(0);
+            FlurryAgent.init(cordova.getActivity(), appKey);
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+
     }
 
     private void logEvent(JSONArray args, CallbackContext callbackContext) throws JSONException {

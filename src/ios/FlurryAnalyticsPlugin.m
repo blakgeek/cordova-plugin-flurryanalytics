@@ -1,463 +1,226 @@
-//
-//  FlurryPlugin.m
-//  Trailerpop
-//
-//  Created by John Potter on 11/21/12.
-//  Changed by Christoph Atteneder
-//
-//
-
-#import "FlurryPlugin.h"
+#import "FlurryAnalyticsPlugin.h"
 #import "Flurry.h"
 
-@implementation FlurryPlugin
+@implementation FlurryAnalyticsPlugin
 
-- (id)init {
-    self = [super init];
-    if (self) {
-    }
-    return self;
-}
+- (void)initialize:(CDVInvokedUrlCommand *)command {
 
+    CDVPluginResult *result;
 
-- (void) setAppVersion:(CDVInvokedUrlCommand*)command
-{
-    
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Setting Flurry version to %@", [command.arguments objectAtIndex:0]);
-    
     @try {
-        NSString* version = [command.arguments objectAtIndex:0];
-        [Flurry setAppVersion: version];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
+        NSString *appKey = [command argumentAtIndex:0];
+        NSDictionary *options = [command argumentAtIndex:1 withDefault:nil andClass:[NSDictionary class]];
 
-- (void) startSession:(CDVInvokedUrlCommand*)command
-{
-    
-    CDVPluginResult* pluginResult = nil;
-    NSString* key = [command.arguments objectAtIndex:0];
+        if (options != nil) {
 
-    // NSString* javaScript = nil;
-    
-    NSLog(@"Starting Flurry Session with key %@", key);
-    
-    @try {
-        if (key != nil) {
-            [Flurry startSession: key];
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-            // starting Flurry - Update Key before releasing
+            if ([options valueForKey:@"version"] != nil) {
+                [Flurry setAppVersion:options[@"version"]];
+            }
+
+            if ([options valueForKey:@"continueSessionMillis"] != nil) {
+
+                [Flurry setSessionContinueSeconds:[options[@"continueSessionMillis"] integerValue]];
+            }
+
+            if ([options valueForKey:@"logLevel"] != nil) {
+                NSString *level = [options[@"logLevel"] uppercaseString];
+
+                if ([@"VERBOSE" isEqualToString:level]) {
+                    [Flurry setLogLevel:FlurryLogLevelAll];
+                } else if ([@"DEBUG" isEqualToString:level]) {
+                    [Flurry setLogLevel:FlurryLogLevelDebug];
+                } else if ([@"INFO" isEqualToString:level]) {
+                    [Flurry setLogLevel:FlurryLogLevelDebug];
+                } else if ([@"WARN" isEqualToString:level]) {
+                    [Flurry setLogLevel:FlurryLogLevelCriticalOnly];
+                } else if ([@"ERROR" isEqualToString:level]) {
+                    [Flurry setLogLevel:FlurryLogLevelCriticalOnly];
+                } else {
+                    // TODO: log and return warning, leave log level at default
+                }
+            }
+
+            if ([options valueForKey:@"continueSessionSeconds"] != nil) {
+
+                [Flurry setSessionContinueSeconds:[options[@"continueSessionSeconds"] intValue]];
+            }
+
+            if ([options valueForKey:@"userId"] != nil) {
+
+                [Flurry setUserID:options[@"userId"]];
+            }
+
+            if ([options valueForKey:@"gender"] != nil) {
+
+                char gender = [[options[@"gender"] lowercaseString] characterAtIndex:0];
+                if (gender == 'm') {
+                    [Flurry setUserID:@"m"];
+                } else if (gender == 'f') {
+                    [Flurry setUserID:@"f"];
+                } else {
+                    // TODO: log and warning, leave gender as default
+                }
+            }
+
+            if ([options valueForKey:@"age"] != nil) {
+
+                [Flurry setAge:[options[@"age"] intValue]];
+            }
+
+            if ([options valueForKey:@"enableEventLogging"] != nil) {
+                [Flurry setEventLoggingEnabled:[options[@"enableEventLogging"] boolValue]];
+            }
+
+            if ([options valueForKey:@"reportSessionsOnPause"] != nil) {
+                [Flurry setSessionReportsOnCloseEnabled:[options[@"reportSessionsOnPause"] boolValue]];
+            }
+
+            if ([options valueForKey:@"reportSessionsOnPause"] != nil) {
+                [Flurry setSessionReportsOnPauseEnabled:[options[@"reportSessionsOnPause"] boolValue]];
+            }
+
+            if ([options valueForKey:@"enableBackgroundSessions"] != nil) {
+                [Flurry setBackgroundSessionEnabled:[options[@"enableBackgroundSessions"] boolValue]];
+            }
+
+            if ([options valueForKey:@"enableCrashReporting"] != nil) {
+                [Flurry setCrashReportingEnabled:[options[@"enableCrashReporting"] boolValue]];
+            }
         }
+
+        [Flurry startSession:appKey];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                         messageAsString:[exception reason]];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                   messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) logEvent:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSString* event = [command.arguments objectAtIndex:0];
-    
+- (void)logEvent:(CDVInvokedUrlCommand *)command {
+
+    CDVPluginResult *result = nil;
+
+    NSString *event = [command argumentAtIndex:0];
+    BOOL isTimed = [[command argumentAtIndex:1] boolValue];
+    NSDictionary *parameters = [command argumentAtIndex:2 withDefault:nil andClass:[NSDictionary class]];
+
     NSLog(@"Logging Event %@", event);
-    
+
     @try {
-        
-        [Flurry logEvent: event];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+
+        if (parameters == nil) {
+
+            [Flurry logEvent:event timed:isTimed];
+        } else {
+
+            [Flurry logEvent:event withParameters:parameters timed:isTimed];
+        }
+        [Flurry logEvent:event];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                          messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) logEventWithParameters:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Logging Event %@", [command.arguments objectAtIndex:0]);
-    NSLog(@"Event Parameters: %@", [command.arguments objectAtIndex:1]);
-    
+- (void)endTimedEvent:(CDVInvokedUrlCommand *)command {
+
+    CDVPluginResult *result;
+
+    NSLog(@"Logging End of Timed Event %@", [command argumentAtIndex:0]);
+
     @try {
-        NSString* event = [command.arguments objectAtIndex:0];
-        NSDictionary* parameters = [NSDictionary dictionaryWithDictionary:[command.arguments objectAtIndex:1]];
-        
-        [Flurry logEvent:event withParameters:parameters];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
+        NSString *event = [command argumentAtIndex:0];
+        NSDictionary *parameters = [command argumentAtIndex:1 withDefault:nil andClass:[NSDictionary class]];
 
-- (void) logTimedEvent:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Logging Timed Event %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        NSString* event = [command.arguments objectAtIndex:0];
-        bool Timed = [[command.arguments objectAtIndex:1]boolValue];
-        
-        [Flurry logEvent:event timed:Timed];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) endTimedEvent:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Logging End of Timed Event %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        NSString* event = [command.arguments objectAtIndex:0];
-       
-        [Flurry endTimedEvent:event withParameters:nil];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) logTimedEventWithParameters:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-
-    NSLog(@"Logging Event %@", [command.arguments objectAtIndex:0]);
-    NSLog(@"Event Parameters: %@", [command.arguments objectAtIndex:1]);
-
-    @try 
-    {
-
-        NSString* event = [command.arguments objectAtIndex:0];
-        NSDictionary* parameters = [NSDictionary dictionaryWithDictionary:[command.arguments objectAtIndex:1]];
-        bool Timed = [[command.arguments objectAtIndex:2]boolValue];
-
-        [Flurry logEvent:event withParameters:parameters timed:Timed];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) 
-    {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-        messageAsString:[exception reason]];
-    }
-
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) endTimedEventWithParameters:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Ending Timed Event %@", [command.arguments objectAtIndex:0]);
-    NSLog(@"Event Parameters: %@", [command.arguments objectAtIndex:1]);
-    
-    @try {
-        NSString* event = [command.arguments objectAtIndex:0];
-        NSDictionary* parameters = [NSDictionary dictionaryWithDictionary:[command.arguments objectAtIndex:1]];
-        
         [Flurry endTimedEvent:event withParameters:parameters];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
                                          messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) logPageView:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
+- (void)logPageView:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
+
     NSLog(@"Logging Page View");
-    
+
     @try {
-        
+
         [Flurry logPageView];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                          messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
 
-- (void) setUserID:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Setting Flurry User ID to %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        NSString* userID = [command.arguments objectAtIndex:0];
-        
-        [Flurry setUserID: userID];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setGender:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Setting Flurry Gender to %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        NSString* Gender = [command.arguments objectAtIndex:0];
-        
-        [Flurry setGender: Gender];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setAge:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Setting Flurry Age to %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        int Age = [[command.arguments objectAtIndex:0]integerValue];
-        
-        [Flurry setAge: Age];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 
-- (void) setShowErrorInLogEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
+- (void)setLocation:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
 
-    
-    NSLog(@"Enabling Show Error in Flurry Event Logging");
-    
-    @try {
-        bool Value = [[command.arguments objectAtIndex:0]boolValue];
-        
-        [Flurry setShowErrorInLogEnabled: Value];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setCrashReportingEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    NSLog(@"Enabling Crash Reporting in Flurry");
-    
-    @try {
-        bool enabled = [[command.arguments objectAtIndex:0]boolValue];
-        [Flurry setCrashReportingEnabled: enabled];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-
-- (void) setEventLoggingEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Enabling Flurry Event Logging");
-    
-    @try {
-        bool Value = [[command.arguments objectAtIndex:0]boolValue];
-        
-        [Flurry setEventLoggingEnabled: Value];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setDebugLogEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Enabling Flurry Debug Logging");
-    
-    @try {
-        bool Value = [[command.arguments objectAtIndex:0]boolValue];
-        
-        [Flurry setDebugLogEnabled: Value];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setSessionReportsOnCloseEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Enabling Flurry Report On App Closing");
-    
-    @try {
-        bool Value = [[command.arguments objectAtIndex:0]boolValue];
-        
-        [Flurry setSessionReportsOnCloseEnabled: Value];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setSessionReportsOnPauseEnabled:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSLog(@"Enabling Flurry Report On App Pausing");
-    
-    @try {
-        bool Value = [[command.arguments objectAtIndex:0]boolValue];
-        
-        [Flurry setSessionReportsOnPauseEnabled: Value];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setSessionContinueSeconds:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-   NSLog(@"Setting Flurry Session Limit to %@", [command.arguments objectAtIndex:0]);
-    
-    @try {
-        int Seconds = [[command.arguments objectAtIndex:0]integerValue];
-        
-        [Flurry setSessionContinueSeconds: Seconds];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }
-    @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void) setLatitude:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
     NSLog(@"Reporting location to Flurry");
-    
+
     @try {
-        double Latitude   = [[command.arguments objectAtIndex:0]doubleValue];
-        double Longitude  = [[command.arguments objectAtIndex:1]doubleValue];
-        float  Horizontal = [[command.arguments objectAtIndex:2]floatValue];
-        float  Vertical   = [[command.arguments objectAtIndex:3]floatValue];
-        
-        [Flurry setLatitude: Latitude longitude:Longitude horizontalAccuracy:Horizontal verticalAccuracy:Vertical ];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        double latitude = [[command argumentAtIndex:0] doubleValue];
+        double longitude = [[command argumentAtIndex:1] doubleValue];
+        float horizontalAccuracy = [[command argumentAtIndex:2] floatValue];
+        float verticalAccuracy = [[command argumentAtIndex:3] floatValue];
+
+        [Flurry setLatitude:latitude longitude:longitude horizontalAccuracy:horizontalAccuracy verticalAccuracy:verticalAccuracy];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
                                          messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
-- (void) logError:(CDVInvokedUrlCommand*)command
-{
-    CDVPluginResult* pluginResult = nil;
-    
-    NSString* errorID = [command.arguments objectAtIndex:0];
-    NSString* message = [command.arguments objectAtIndex:1];
-    
+- (void)logError:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
+
+    NSString *errorID = [command argumentAtIndex:0];
+    NSString *message = [command argumentAtIndex:1];
+
     NSLog(@"Logging Error with id %@", errorID);
-    
+
     @try {
-        
+
         [Flurry logError:errorID message:message error:nil];
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                          messageAsString:[exception reason]];
     }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+- (void)startSession:(CDVInvokedUrlCommand *)command {
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"startSession is not supported for ios"];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+- (void)endSession:(CDVInvokedUrlCommand *)command {
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"endSession is not supported for ios"];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
 @end
