@@ -18,7 +18,20 @@ function FlurryAnalytics() {
 	 reportSessionsOnClose       (defaults to true, iOS only)
 	 reportSessionsOnPause       (defaults to true, iOS only)
 	 */
-	this.init = function(appKey, options, successCallback, failureCallback) {
+	this.init = function(appKey /* [options], successCallback, failureCallback */) {
+
+		var options,
+			successCallback,
+			failureCallback;
+
+		if(arguments.length === 4) {
+			options = arguments[1];
+			successCallback = arguments[2];
+			failureCallback = arguments[3];
+		} else {
+			successCallback = arguments[1];
+			failureCallback = arguments[2];
+		}
 
 		return cordova.exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'initialize', [appKey, options]);
 	};
@@ -26,9 +39,9 @@ function FlurryAnalytics() {
 	// the params parameter is optional
 	this.logEvent = function(event /* [params], successCallback, failureCallback */) {
 
-		var successCallback = null,
-			failureCallback = null,
-			params = null;
+		var successCallback,
+			failureCallback,
+			params;
 
 		if(arguments.length === 4) {
 			params = arguments[1];
@@ -49,9 +62,9 @@ function FlurryAnalytics() {
 	// the params parameter is optional
 	this.startTimedEvent = function(event /* [params], successCallback, failureCallback */) {
 
-		var successCallback = null,
-			failureCallback = null,
-			params = null;
+		var successCallback,
+			failureCallback,
+			params;
 
 		if(arguments.length === 4) {
 			params = arguments[1];
@@ -72,9 +85,9 @@ function FlurryAnalytics() {
 	// the params parameter is optional
 	this.endTimedEvent = function(event /* [params], successCallback, failureCallback */) {
 
-		var successCallback = null,
-			failureCallback = null,
-			params = null;
+		var successCallback,
+			failureCallback,
+			params;
 
 		if(arguments.length === 4) {
 			params = arguments[1];
