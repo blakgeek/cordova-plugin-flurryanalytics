@@ -129,7 +129,7 @@ var location = {
     horizontalAccuracy: 1440 // optional iOS only
 }
 flurryAnalytics.setLocation(location, function() {
-    console.log('I see you playa');
+    console.log('Party over here');
 }, function(err) {
     console.error(['WTF?', err]);
 });
