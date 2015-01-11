@@ -6,10 +6,12 @@
     <license>Apache 2.0</license>
     <keywords>flurry,analytics,cordova</keywords>
     <author>Carlos "blakgeek" Lawton</author>
+    <repo>https://github.com/blakgeek/cordova-plugin-flurryanalytics.git</repo>
+    <issue>https://github.com/blakgeek/cordova-plugin-flurryanalytics/issues</issue>
 
     <js-module src="www/plugin.js" name="FlurryAnalyticsPlugin">
         <clobbers target="FlurryAnalytics" />
-        <clobbers target="plugins.FlurryAnalytics"/>
+        <clobbers target="plugins.FlurryAnalytics" />
     </js-module>
 
     <engines>
@@ -41,7 +43,8 @@
         <dependency id="com.google.playservices" />
         <dependency id="android.support.v4" />
 
-        <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java" target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
+        <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java"
+            target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
         <source-file src="src/android/FlurryAnalytics-5.0.0.jar" target-dir="libs" />
 
         <config-file target="AndroidManifest.xml" parent="/*/application">
