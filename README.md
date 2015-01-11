@@ -1,6 +1,8 @@
 # Flurry Analytics Plugin for Cordova #
 Adds support for Flurry Analytics to your Cordova or PhoneGap apps.
 
+This plugin was heavily inspired by https://github.com/jfpsf/flurry-phonegap-plugin.  Big thanks to its creators.
+
 ## How do I install it? ##
 
 If you're like me and using [Cordova CLI](http://cordova.apache.org/):
@@ -135,3 +137,5 @@ flurryAnalytics.setLocation(location, function() {
 });
 
 ```
+
+
