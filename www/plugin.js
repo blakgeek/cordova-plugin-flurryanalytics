@@ -1,3 +1,5 @@
+
+
 function FlurryAnalytics() {
 
 	/*
@@ -20,17 +22,19 @@ function FlurryAnalytics() {
 	 */
 	this.init = function(appKey /* [options], successCallback, failureCallback */) {
 
-		var options,
-			successCallback,
-			failureCallback;
+		var successCallback,
+			failureCallback,
+			options;
 
 		if(arguments.length === 4) {
 			options = arguments[1];
 			successCallback = arguments[2];
 			failureCallback = arguments[3];
-		} else {
+		} else if(arguments.length === 3) {
 			successCallback = arguments[1];
 			failureCallback = arguments[2];
+		} else if(arguments.length === 2) {
+			options = arguments[1];
 		}
 
 		return cordova.exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'initialize', [appKey, options]);
@@ -47,9 +51,11 @@ function FlurryAnalytics() {
 			params = arguments[1];
 			successCallback = arguments[2];
 			failureCallback = arguments[3];
-		} else {
+		} else if(arguments.length === 3) {
 			successCallback = arguments[1];
 			failureCallback = arguments[2];
+		} else if(arguments.length === 2) {
+			params = arguments[1];
 		}
 
 		return cordova.exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'logEvent', [
@@ -70,9 +76,11 @@ function FlurryAnalytics() {
 			params = arguments[1];
 			successCallback = arguments[2];
 			failureCallback = arguments[3];
-		} else {
+		} else if(arguments.length === 3) {
 			successCallback = arguments[1];
 			failureCallback = arguments[2];
+		} else if(arguments.length === 2) {
+			params = arguments[1];
 		}
 
 		return cordova.exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'logEvent', [
@@ -93,9 +101,11 @@ function FlurryAnalytics() {
 			params = arguments[1];
 			successCallback = arguments[2];
 			failureCallback = arguments[3];
-		} else {
+		} else if(arguments.length === 3) {
 			successCallback = arguments[1];
 			failureCallback = arguments[2];
+		} else if(arguments.length === 2) {
+			params = arguments[1];
 		}
 		return cordova.exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'endTimedEvent', [
 			event,
@@ -136,3 +146,4 @@ if(typeof module !== undefined && module.exports) {
 
 	module.exports = FlurryAnalytics;
 }
+
