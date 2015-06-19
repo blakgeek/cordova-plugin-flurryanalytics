@@ -54,9 +54,9 @@
 
                 char gender = [[options[@"gender"] lowercaseString] characterAtIndex:0];
                 if (gender == 'm') {
-                    [Flurry setUserID:@"m"];
+                    [Flurry setGender:@"m"];
                 } else if (gender == 'f') {
-                    [Flurry setUserID:@"f"];
+                    [Flurry setGender:@"f"];
                 } else {
                     // TODO: log and warning, leave gender as default
                 }
