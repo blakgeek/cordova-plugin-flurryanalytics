@@ -104,7 +104,7 @@
 
     NSString *event = [command argumentAtIndex:0];
     BOOL isTimed = [[command argumentAtIndex:1] boolValue];
-    NSDictionary *parameters = [command argumentAtIndex:2 withDefault:nil andClass:[NSDictionary class]];
+    NSMutableDictionary *parameters = [command argumentAtIndex:2 withDefault:nil andClass:[NSMutableDictionary class]];
 
     NSLog(@"Logging Event %@", event);
 
@@ -115,14 +115,24 @@
             [Flurry logEvent:event timed:isTimed];
         } else {
 
+            [parameters enumerateKeysAndObjectsWithOptions:NSEnumerationConcurrent
+                                                usingBlock:^(id key, id object, BOOL *stop) {
+
+                                                    if ([object isKindOfClass:[NSDictionary class]]) {
+                                                        parameters[key] = [self toJSON:object];
+                                                    } else if ([object isKindOfClass:[NSArray class]]) {
+                                                        parameters[key] = [NSString stringWithFormat:@"[%@]", [object componentsJoinedByString:@", "]];
+                                                    }
+                                                }];
+
             [Flurry logEvent:event withParameters:parameters timed:isTimed];
         }
-        [Flurry logEvent:event];
+
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                         messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -136,14 +146,23 @@
 
     @try {
         NSString *event = [command argumentAtIndex:0];
-        NSDictionary *parameters = [command argumentAtIndex:1 withDefault:nil andClass:[NSDictionary class]];
+        NSMutableDictionary *parameters = [command argumentAtIndex:1 withDefault:nil andClass:[NSMutableDictionary class]];
 
+        [parameters enumerateKeysAndObjectsWithOptions:NSEnumerationConcurrent
+                                            usingBlock:^(id key, id object, BOOL *stop) {
+
+                                                if ([object isKindOfClass:[NSDictionary class]]) {
+                                                    parameters[key] = [self toJSON:object];
+                                                } else if ([object isKindOfClass:[NSArray class]]) {
+                                                    parameters[key] = [NSString stringWithFormat:@"[%@]", [object componentsJoinedByString:@", "]];
+                                                }
+                                            }];
         [Flurry endTimedEvent:event withParameters:parameters];
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -161,7 +180,7 @@
     }
     @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                         messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -184,7 +203,7 @@
     }
     @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION
-                                         messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -193,19 +212,19 @@
 - (void)logError:(CDVInvokedUrlCommand *)command {
     CDVPluginResult *result = nil;
 
-    NSString *errorID = [command argumentAtIndex:0];
+    NSString *code = [command argumentAtIndex:0];
     NSString *message = [command argumentAtIndex:1];
 
-    NSLog(@"Logging Error with id %@", errorID);
+    NSLog(@"Logging Error with id %@", code);
 
     @try {
 
-        [Flurry logError:errorID message:message error:nil];
+        [Flurry logError:code message:message error:nil];
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
     @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                         messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -223,4 +242,12 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
+#pragma mark - Helper functions
+
+- (NSString *)toJSON:(NSDictionary *)data {
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:&error];
+
+    return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+}
 @end

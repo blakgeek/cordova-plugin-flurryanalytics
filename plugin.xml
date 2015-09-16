@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"
-    id="com.blakgeek.cordova.plugin.flurryanalytics" version="1.0.2">
+    id="cordova-plugin-flurryanalytics" version="1.1.0">
     <name>Flurry Analytics</name>
     <description>Adds support for Flurry Analytics to your Cordova/PhoneGap apps.</description>
     <license>Apache 2.0</license>
@@ -27,7 +27,7 @@
         <header-file src="src/ios/Flurry.h" />
         <header-file src="src/ios/FlurryAnalyticsPlugin.h" />
         <source-file src="src/ios/FlurryAnalyticsPlugin.m" />
-        <source-file src="src/ios/libFlurry_6.0.0.a" framework="true" />
+        <source-file src="src/ios/libFlurry_7.1.1.a" framework="true" />
         <framework src="SystemConfiguration.framework" />
         <framework src="CFNetwork.framework" />
         <framework src="Security.framework" />
@@ -40,12 +40,13 @@
             </feature>
         </config-file>
 
-        <dependency id="com.google.playservices" />
-        <dependency id="android.support.v4" />
+        <framework src="src/android/flurryAnalytics.gradle" custom="true" type="gradleReference" />
+        <framework src="com.google.android.gms:play-services-ads:+" />
+        <framework src="com.android.support:support-v13:+"/>
 
         <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java"
             target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
-        <source-file src="src/android/FlurryAnalytics-5.0.0.jar" target-dir="libs" />
+        <source-file src="src/android/FlurryAnalytics-6.0.0.jar" target-dir="libs" />
 
         <config-file target="AndroidManifest.xml" parent="/*/application">
             <meta-data android:name="com.google.android.gms.version"
