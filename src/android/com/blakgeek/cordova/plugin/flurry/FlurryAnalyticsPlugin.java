@@ -76,7 +76,7 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
     private void logError(JSONArray args, CallbackContext callbackContext) throws JSONException {
 
         try {
-            FlurryAgent.onError(args.getString(0), args.getString(1), (Exception) null);
+            FlurryAgent.onError(args.getString(0), args.getString(1), new Exception(args.getString(1)));
             callbackContext.success();
         } catch (Exception e) {
             callbackContext.error(e.getMessage());
