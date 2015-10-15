@@ -40,20 +40,22 @@
             </feature>
         </config-file>
 
-        <framework src="src/android/flurryAnalytics.gradle" custom="true" type="gradleReference" />
-        <framework src="com.google.android.gms:play-services-ads:+" />
-        <framework src="com.android.support:support-v13:+"/>
+        <config-file target="AndroidManifest.xml" parent="/*/application">
+            <meta-data android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version" />
+        </config-file>
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.INTERNET" />
+        </config-file>
 
         <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java"
             target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
         <source-file src="src/android/FlurryAnalytics-6.0.0.jar" target-dir="libs" />
 
-        <config-file target="AndroidManifest.xml" parent="/*/application">
-            <meta-data android:name="com.google.android.gms.version"
-                android:value="@integer/google_play_services_version" />
-        </config-file>
-        <config-file target="AndroidManifest.xml" parent="/*">
-            <uses-permission android:name="android.permission.INTERNET" />
-        </config-file>
+        <framework src="src/android/flurryAnalytics.gradle" custom="true" type="gradleReference" />
+        <framework src="com.google.android.gms:play-services-ads:+" />
+        <framework src="com.android.support:support-v13:+" />
+
     </platform>
 </plugin>
