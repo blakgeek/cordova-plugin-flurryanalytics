@@ -1,6 +1,0 @@
-cdvPluginPostBuildExtras.add({
-
-	dependencies {
-	    compile files('libs/flurryAnalytics-6.0.0.jar')
-	}
-});

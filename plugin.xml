@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android"
-    id="cordova-plugin-flurryanalytics" version="1.1.0">
+    id="cordova-plugin-flurry-analytics" version="1.1.0">
     <name>Flurry Analytics</name>
     <description>Adds support for Flurry Analytics to your Cordova/PhoneGap apps.</description>
     <license>Apache 2.0</license>
@@ -9,7 +9,7 @@
     <repo>https://github.com/blakgeek/cordova-plugin-flurryanalytics.git</repo>
     <issue>https://github.com/blakgeek/cordova-plugin-flurryanalytics/issues</issue>
 
-    <js-module src="www/plugin.js" name="FlurryAnalyticsPlugin">
+    <js-module src="www/FlurryAnalyticsPlugin.js" name="FlurryAnalyticsPlugin">
         <clobbers target="FlurryAnalytics" />
         <clobbers target="plugins.FlurryAnalytics" />
     </js-module>
@@ -18,19 +18,18 @@
         <engine name="cordova" version=">=3.0.0" />
     </engines>
 
+    <dependency id="cordova-plugin-cocoapod-support"/>
+
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="FlurryAnalyticsPlugin">
                 <param name="ios-package" value="FlurryAnalyticsPlugin" />
             </feature>
         </config-file>
-        <header-file src="src/ios/Flurry.h" />
+        <!--<header-file src="src/ios/Flurry.h" />-->
         <header-file src="src/ios/FlurryAnalyticsPlugin.h" />
         <source-file src="src/ios/FlurryAnalyticsPlugin.m" />
-        <source-file src="src/ios/libFlurry_7.1.1.a" framework="true" />
-        <framework src="SystemConfiguration.framework" />
-        <framework src="CFNetwork.framework" />
-        <framework src="Security.framework" />
+        <pod id="Flurry-iOS-SDK/FlurrySDK"/>
     </platform>
 
     <platform name="android">
@@ -51,11 +50,13 @@
 
         <source-file src="src/android/com/blakgeek/cordova/plugin/flurry/FlurryAnalyticsPlugin.java"
             target-dir="src/com/blakgeek/cordova/plugin/flurry/" />
-        <source-file src="src/android/FlurryAnalytics-6.0.0.jar" target-dir="libs" />
 
-        <framework src="src/android/flurryAnalytics.gradle" custom="true" type="gradleReference" />
-        <framework src="com.google.android.gms:play-services-ads:+" />
-        <framework src="com.android.support:support-v13:+" />
+        <framework src="com.flurry.android:analytics:6+" />
+        <!--<source-file src="src/android/FlurryAnalytics-6.0.0.jar" target-dir="libs" />-->
+
+        <!--<framework src="src/android/flurryAnalytics.gradle" custom="true" type="gradleReference" />-->
+        <!--<framework src="com.google.android.gms:play-services-ads:+" />-->
+        <!--<framework src="com.android.support:support-v13:+" />-->
 
     </platform>
 </plugin>
