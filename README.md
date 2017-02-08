@@ -7,13 +7,13 @@ This plugin was heavily inspired by https://github.com/jfpsf/flurry-phonegap-plu
 
 If you're like me and using [Cordova CLI](http://cordova.apache.org/):
 ```
-cordova plugin add https://github.com/blakgeek/cordova-plugin-flurryanalytics
+cordova plugin add cordova-plugin-flurryanalytics
 ```
 
 or
 
 ```
-phonegap local plugin add https://github.com/blakgeek/cordova-plugin-flurryanalytics
+phonegap local plugin add cordova-plugin-flurryanalytics
 ```
 
 TODO: add manual installation steps
@@ -24,17 +24,10 @@ TODO: complete usage documentation
 
 ```javascript
 // create a new instance
-flurryAnalytics = new FlurryAnalytics();
-
-// initialize it
-flurryAnalytics.init('<your app key>', function() {
-    console.log("Yippy I'm initialized and ish");
-}, function(err) {
-    console.error(['Awww man :(', err]);
-});
-
-// or initialize it with options (none of these are required)
-var options = {
+flurryAnalytics = new FlurryAnalytics({
+    // requried
+    appKey: '<your app key>',
+    // optional
     version: 'my_custom_version',       // overrides the version of the app
     continueSessionSeconds: 3,          // how long can the app be paused before a new session is created, must be less than or equal to five for Android devices
     userId: 'blakgeek',
@@ -47,11 +40,6 @@ var options = {
     enableBackgroundSessions: true,     // should the session continue when the app is the background, defaults to false, iOS only
     reportSessionsOnClose: false,       // should data be pushed to flurry when the app closes, defaults to true, iOS only
     reportSessionsOnPause: false        // should data be pushed to flurry when the app is paused, defaults to true, iOS only
-}
-flurryAnalytics.init('<your app key>', options, function() {
-    console.log("Look ma I'm initialized and customized");
-}, function(err) {
-    console.error(['Awww man :(', err]);
 });
 
 // log an event to flurry
