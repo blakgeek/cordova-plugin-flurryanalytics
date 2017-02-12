@@ -38,10 +38,6 @@
             </feature>
         </config-file>
 
-        <config-file target="AndroidManifest.xml" parent="/*/application">
-            <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
-        </config-file>
-
         <config-file target="AndroidManifest.xml" parent="/*">
             <uses-permission android:name="android.permission.INTERNET"/>
         </config-file>
