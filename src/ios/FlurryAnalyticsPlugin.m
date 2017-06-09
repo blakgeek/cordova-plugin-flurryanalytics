@@ -98,6 +98,25 @@
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
+- (void)setUserId:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
+
+    NSLog(@"Set UserId");
+
+    @try {
+        NSString *userId = [command argumentAtIndex:0];
+
+        [Flurry setUserID:userId];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    }
+    @catch(NSException *exception) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                    messageAsString:[exception reason]];
+    }
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 - (void)logEvent:(CDVInvokedUrlCommand *)command {
 
     CDVPluginResult *result = nil;
