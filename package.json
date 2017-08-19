@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-flurryanalytics",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Ads support for Flurry Analytics to Cordova and Phonegap apps",
   "repository": {
     "type": "git",
