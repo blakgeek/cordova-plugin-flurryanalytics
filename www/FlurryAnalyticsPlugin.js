@@ -142,11 +142,15 @@ function FlurryAnalytics(config) {
 
     // only needed for older versions of Android
     this.startSession = function (successCallback, failureCallback) {
+
+        if(cordova.platformId !== 'android') return;
         exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'startSession', []);
     };
 
     // only needed for older versions of Android
     this.endSession = function (successCallback, failureCallback) {
+
+        if(cordova.platformId !== 'android') return;
         exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'endSession', []);
     };
 

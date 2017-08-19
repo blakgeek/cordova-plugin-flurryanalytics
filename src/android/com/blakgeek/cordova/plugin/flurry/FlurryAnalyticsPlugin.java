@@ -1,9 +1,12 @@
 package com.blakgeek.cordova.plugin.flurry;
 
 import android.util.Log;
+
 import com.flurry.android.Constants;
 import com.flurry.android.FlurryAgent;
+import com.flurry.android.FlurryAgentListener;
 import com.flurry.android.FlurryEventRecordStatus;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 import org.json.JSONArray;
@@ -12,7 +15,7 @@ import org.json.JSONObject;
 
 import java.util.*;
 
-public class FlurryAnalyticsPlugin extends CordovaPlugin {
+public class FlurryAnalyticsPlugin extends CordovaPlugin implements FlurryAgentListener {
 
     private static final String LOGTAG = "FlurryPlugin";
     private static final List<String> SUPPORTED_ACTIONS = Arrays.asList(
@@ -22,32 +25,48 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
             "logPageView",
             "logError",
             "setLocation",
-            "setUserId"
+            "setUserId",
+            "startSession",
+            "endSession"
     );
 
 
     @Override
     public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
-        if(SUPPORTED_ACTIONS.contains(action)) {
+        if (SUPPORTED_ACTIONS.contains(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        if ("initialize".equals(action)) {
-                            init(args, callbackContext);
-                        } else if ("logEvent".equals(action)) {
-                            logEvent(args, callbackContext);
-                        } else if ("endTimedEvent".equals(action)) {
-                            endTimedEvent(args, callbackContext);
-                        } else if ("logPageView".equals(action)) {
-                            logPageView(args, callbackContext);
-                        } else if ("logError".equals(action)) {
-                            logError(args, callbackContext);
-                        } else if ("setLocation".equals(action)) {
-                            setLocation(args, callbackContext);
-                        } else if ("setUserId".equals(action)) {
-                            setUserId(args, callbackContext);
+                        switch (action) {
+                            case "initialize":
+                                init(args, callbackContext);
+                                break;
+                            case "logEvent":
+                                logEvent(args, callbackContext);
+                                break;
+                            case "endTimedEvent":
+                                endTimedEvent(args, callbackContext);
+                                break;
+                            case "logPageView":
+                                logPageView(callbackContext);
+                                break;
+                            case "logError":
+                                logError(args, callbackContext);
+                                break;
+                            case "setLocation":
+                                setLocation(args, callbackContext);
+                                break;
+                            case "setUserId":
+                                setUserId(args, callbackContext);
+                                break;
+                            case "startSession":
+                                startSession(callbackContext);
+                                break;
+                            case "endSession":
+                                endSession(callbackContext);
+                                break;
                         }
                     } catch (JSONException e) {
                         Log.d("Flurry exception: ", e.getMessage());
@@ -86,7 +105,7 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
         }
     }
 
-    private void logPageView(JSONArray args, CallbackContext callbackContext) {
+    private void logPageView(CallbackContext callbackContext) {
 
         try {
             FlurryAgent.onPageView();
@@ -104,22 +123,26 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
         } else {
             FlurryAgent.endTimedEvent(event, this.jsonObjectToMap(args.getJSONObject(1)));
         }
+        callbackContext.success();
     }
 
     private void init(JSONArray args, CallbackContext callbackContext) throws JSONException {
 
         try {
 
+            FlurryAgent.Builder builder = new FlurryAgent.Builder();
+
             // deal with all the optional configuration data
             if (!args.isNull(1)) {
 
                 JSONObject options = args.getJSONObject(1);
+
                 if (!options.isNull("version")) {
                     FlurryAgent.setVersionName(options.getString("version"));
                 }
                 if (!options.isNull("continueSessionSeconds")) {
                     // TODO: validate the value is less than 5 and return error
-                    FlurryAgent.setContinueSessionMillis(options.getInt("continueSessionSeconds") * 1000);
+                    builder.withContinueSessionMillis(options.getInt("continueSessionSeconds") * 1000);
                 }
                 if (!options.isNull("userId")) {
                     FlurryAgent.setUserId(options.getString("userId"));
@@ -130,38 +153,39 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
                         FlurryAgent.setGender(Constants.MALE);
                     } else if (gender == 'f') {
                         FlurryAgent.setGender(Constants.FEMALE);
-                    } else {
-                        // TODO: log and warning, leave gender as default
                     }
                 }
                 if (!options.isNull("age")) {
                     FlurryAgent.setAge(options.getInt("age"));
                 }
-                if (!options.isNull("logLevel")) {
-                    String level = options.getString("logLevel");
+                switch (options.optString("logLevel").toUpperCase()) {
 
-                    if ("VERBOSE".equalsIgnoreCase(level)) {
-                        FlurryAgent.setLogLevel(Log.VERBOSE);
-                        FlurryAgent.setLogEnabled(true);
-                    } else if ("DEBUG".equalsIgnoreCase(level)) {
-                        FlurryAgent.setLogLevel(Log.DEBUG);
-                        FlurryAgent.setLogEnabled(true);
-                    } else if ("INFO".equalsIgnoreCase(level)) {
-                        FlurryAgent.setLogLevel(Log.INFO);
-                        FlurryAgent.setLogEnabled(true);
-                    } else if ("WARN".equalsIgnoreCase(level)) {
-                        FlurryAgent.setLogLevel(Log.WARN);
-                        FlurryAgent.setLogEnabled(true);
-                    } else if ("ERROR".equalsIgnoreCase(level)) {
-                        FlurryAgent.setLogLevel(Log.ERROR);
-                        FlurryAgent.setLogEnabled(true);
-                    } else {
-                        // TODO: log and return warning, leave log level at default
-                    }
+                    case "VERBOSE":
+                        builder.withLogLevel(Log.VERBOSE);
+                        builder.withLogEnabled(true);
+                        break;
+                    case "DEBUG":
+                        builder.withLogLevel(Log.DEBUG);
+                        builder.withLogEnabled(true);
+                        break;
+                    case "INFO":
+                        builder.withLogLevel(Log.INFO);
+                        builder.withLogEnabled(true);
+                        break;
+                    case "WARN":
+                        builder.withLogLevel(Log.WARN);
+                        builder.withLogEnabled(true);
+                        break;
+                    case "ERROR":
+                        builder.withLogLevel(Log.ERROR);
+                        builder.withLogEnabled(true);
+                        break;
                 }
+
+
                 if (!options.isNull("enableEventLogging")) {
 
-                    FlurryAgent.setLogEvents(options.getBoolean("enableEventLogging"));
+                    builder.withLogEnabled(options.getBoolean("enableEventLogging"));
                 }
             }
         /*
@@ -177,7 +201,8 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
 
             // app key is the only that is required.
             String appKey = args.getString(0);
-            FlurryAgent.init(cordova.getActivity(), appKey);
+            builder.withListener(this);
+            builder.build(cordova.getActivity(), appKey);
             callbackContext.success();
         } catch (Exception e) {
             callbackContext.error(e.getMessage());
@@ -220,11 +245,36 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
         }
         @SuppressWarnings("unchecked")
         Iterator<String> nameItr = json.keys();
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         while (nameItr.hasNext()) {
             String name = nameItr.next();
             params.put(name, json.getString(name));
         }
         return params;
+    }
+
+    private void startSession(CallbackContext callbackContext) {
+
+        try {
+            FlurryAgent.onStartSession(cordova.getActivity());
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
+    private void endSession(CallbackContext callbackContext) {
+
+        try {
+            FlurryAgent.onEndSession(cordova.getActivity());
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
+    @Override
+    public void onSessionStarted() {
+
     }
 }
