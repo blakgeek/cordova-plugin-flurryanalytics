@@ -4,7 +4,11 @@
 @interface FlurryAnalyticsPlugin : CDVPlugin
 - (void)initialize:(CDVInvokedUrlCommand *)command;
 
-- (void)setUserId: (CDVInvokedUrlCommand *)command;
+- (void)setUserId:(CDVInvokedUrlCommand *)command;
+
+- (void)setAge:(CDVInvokedUrlCommand *)command;
+
+- (void)setGender:(CDVInvokedUrlCommand *)command;
 
 - (void)logEvent:(CDVInvokedUrlCommand *)command;
 
@@ -16,7 +20,4 @@
 
 - (void)setLocation:(CDVInvokedUrlCommand *)command;
 
-- (void)startSession:(CDVInvokedUrlCommand *)command;
-
-- (void)endSession:(CDVInvokedUrlCommand *)command;
 @end

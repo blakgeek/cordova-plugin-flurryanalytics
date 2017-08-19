@@ -26,6 +26,8 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin implements FlurryAgentL
             "logError",
             "setLocation",
             "setUserId",
+            "setGender",
+            "setAge",
             "startSession",
             "endSession"
     );
@@ -60,6 +62,12 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin implements FlurryAgentL
                                 break;
                             case "setUserId":
                                 setUserId(args, callbackContext);
+                                break;
+                            case "setAge":
+                                setAge(args, callbackContext);
+                                break;
+                            case "setGender":
+                                setGender(args, callbackContext);
                                 break;
                             case "startSession":
                                 startSession(callbackContext);
@@ -158,6 +166,11 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin implements FlurryAgentL
                 if (!options.isNull("age")) {
                     FlurryAgent.setAge(options.getInt("age"));
                 }
+
+                if (!options.isNull("enablePulse")) {
+                    builder.withPulseEnabled(options.getBoolean("enablePulse"));
+                }
+
                 switch (options.optString("logLevel").toUpperCase()) {
 
                     case "VERBOSE":
@@ -232,6 +245,29 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin implements FlurryAgentL
     private void setUserId(JSONArray args, CallbackContext callbackContext) throws JSONException {
         try {
             FlurryAgent.setUserId(args.getString(0));
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
+    private void setAge(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        try {
+            FlurryAgent.setUserId(args.optString(0));
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
+        }
+    }
+
+    private void setGender(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        try {
+            char gender = args.optString(0, "x").toLowerCase().charAt(0);
+            if (gender == 'm') {
+                FlurryAgent.setGender(Constants.MALE);
+            } else if (gender == 'f') {
+                FlurryAgent.setGender(Constants.FEMALE);
+            }
             callbackContext.success();
         } catch (Exception e) {
             callbackContext.error(e.getMessage());

@@ -34,6 +34,7 @@ flurryAnalytics = new FlurryAnalytics({
     gender: 'm',                        // valid values are "m", "M", "f" and "F"
     age: 38,
     logLevel: 'ERROR',                  // (VERBOSE, DEBUG, INFO, WARN, ERROR)
+    enablePulse: true,                  // defaults to false (I think :/ )
     enableLogging: true,                // defaults to false
     enableEventLogging: false,          // should every event show up the app's log, defaults to true
     enableCrashReporting: true,         // should app crashes be recorded in flurry, defaults to false, iOS only
@@ -48,6 +49,24 @@ flurryAnalytics.setUserId('OwnUser', function() {
 }, function(err) {
     console.error(['WTF?', err]);
 });
+
+
+// sets user's age for this session
+flurryAnalytics.setAge(25, function() {
+    console.log('Ah yeah!');
+}, function(err) {
+    console.error(['WTF?', err]);
+});
+
+
+// sets user's for this session
+flurryAnalytics.setGender('FEMALE', function() {
+    console.log('woop woop!');
+}, function(err) {
+    console.error(['WTF?', err]);
+});
+
+
 
 // log an event to flurry
 flurryAnalytics.logEvent('dinner time', function() {

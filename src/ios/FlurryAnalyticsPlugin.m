@@ -17,6 +17,10 @@
                 [Flurry setAppVersion:options[@"version"]];
             }
 
+            if ([options valueForKey:@"enablePulse"] != nil) {
+                [Flurry setPulseEnabled:options[@"enablePulse"]];
+            }
+
             if ([options valueForKey:@"continueSessionMillis"] != nil) {
 
                 [Flurry setSessionContinueSeconds:[options[@"continueSessionMillis"] integerValue]];
@@ -52,7 +56,7 @@
 
             if ([options valueForKey:@"gender"] != nil) {
 
-                char gender = [[options[@"gender"] lowercaseString] characterAtIndex:0];
+                char gender = (char) [[options[@"gender"] lowercaseString] characterAtIndex:0];
                 if (gender == 'm') {
                     [Flurry setGender:@"m"];
                 } else if (gender == 'f') {
@@ -109,9 +113,49 @@
         [Flurry setUserID:userId];
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     }
-    @catch(NSException *exception) {
+    @catch (NSException *exception) {
         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
-                                    messageAsString:[exception reason]];
+                                   messageAsString:[exception reason]];
+    }
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+
+- (void)setAge:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
+
+    @try {
+        int age = [command.arguments[0] intValue];
+
+        [Flurry setAge:age];
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    }
+    @catch (NSException *exception) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                   messageAsString:[exception reason]];
+    }
+
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
+
+- (void)setGender:(CDVInvokedUrlCommand *)command {
+    CDVPluginResult *result = nil;
+
+    @try {
+        char gender = (char) [[command.arguments[0] lowercaseString] characterAtIndex:0];
+        if (gender == 'm') {
+            [Flurry setGender:@"m"];
+        } else if (gender == 'f') {
+            [Flurry setGender:@"f"];
+        }
+
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    }
+    @catch (NSException *exception) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
+                                   messageAsString:[exception reason]];
     }
 
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
@@ -246,18 +290,6 @@
                                    messageAsString:[exception reason]];
     }
 
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-}
-
-- (void)startSession:(CDVInvokedUrlCommand *)command {
-
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"startSession is not supported for ios"];
-    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
-}
-
-- (void)endSession:(CDVInvokedUrlCommand *)command {
-
-    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"endSession is not supported for ios"];
     [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
 }
 
