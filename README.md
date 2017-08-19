@@ -42,6 +42,13 @@ flurryAnalytics = new FlurryAnalytics({
     reportSessionsOnPause: false        // should data be pushed to flurry when the app is paused, defaults to true, iOS only
 });
 
+// sets userId for this session
+flurryAnalytics.setUserId('OwnUser', function() {
+    console.log('Cool!');
+}, function(err) {
+    console.error(['WTF?', err]);
+});
+
 // log an event to flurry
 flurryAnalytics.logEvent('dinner time', function() {
     console.log('Nice!');

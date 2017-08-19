@@ -44,6 +44,12 @@ function FlurryAnalytics(config) {
         exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'initialize', [appKey, options]);
     };
 
+    this.setUserId = function (userId, successCallback, failureCallback) {
+        exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'setUserId', [
+            userId
+        ]);
+    };
+
     // the params parameter is optional
     this.logEvent = function (event /* [params], successCallback, failureCallback */) {
 

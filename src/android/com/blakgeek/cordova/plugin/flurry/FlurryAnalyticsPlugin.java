@@ -21,7 +21,8 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
             "endTimedEvent",
             "logPageView",
             "logError",
-            "setLocation"
+            "setLocation",
+            "setUserId"
     );
 
 
@@ -45,6 +46,8 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
                             logError(args, callbackContext);
                         } else if ("setLocation".equals(action)) {
                             setLocation(args, callbackContext);
+                        } else if ("setUserId".equals(action)) {
+                            setUserId(args, callbackContext);
                         }
                     } catch (JSONException e) {
                         Log.d("Flurry exception: ", e.getMessage());
@@ -198,6 +201,15 @@ public class FlurryAnalyticsPlugin extends CordovaPlugin {
             callbackContext.success();
         } else {
             callbackContext.error(result.toString());
+        }
+    }
+
+    private void setUserId(JSONArray args, CallbackContext callbackContext) throws JSONException {
+        try {
+            FlurryAgent.setUserId(args.getString(0));
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(e.getMessage());
         }
     }
 

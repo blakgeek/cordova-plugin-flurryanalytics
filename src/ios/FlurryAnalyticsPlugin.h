@@ -4,6 +4,8 @@
 @interface FlurryAnalyticsPlugin : CDVPlugin
 - (void)initialize:(CDVInvokedUrlCommand *)command;
 
+- (void)setUserId: (CDVInvokedUrlCommand *)command;
+
 - (void)logEvent:(CDVInvokedUrlCommand *)command;
 
 - (void)endTimedEvent:(CDVInvokedUrlCommand *)command;
