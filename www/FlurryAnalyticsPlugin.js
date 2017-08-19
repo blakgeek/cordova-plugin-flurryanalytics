@@ -50,6 +50,18 @@ function FlurryAnalytics(config) {
         ]);
     };
 
+    this.setAge = function (age, successCallback, failureCallback) {
+        exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'setAge', [
+            age
+        ]);
+    };
+
+    this.setGender = function (gender, successCallback, failureCallback) {
+        exec(successCallback, failureCallback, 'FlurryAnalyticsPlugin', 'setGender', [
+            gender
+        ]);
+    };
+
     // the params parameter is optional
     this.logEvent = function (event /* [params], successCallback, failureCallback */) {
 
