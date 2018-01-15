@@ -28,7 +28,7 @@
         <!--<header-file src="src/ios/Flurry.h" />-->
         <header-file src="src/ios/FlurryAnalyticsPlugin.h"/>
         <source-file src="src/ios/FlurryAnalyticsPlugin.m"/>
-        <pod id="Flurry-iOS-SDK/FlurrySDK"/>
+        <pod name="Flurry-iOS-SDK/FlurrySDK"/>
     </platform>
 
     <platform name="android">
